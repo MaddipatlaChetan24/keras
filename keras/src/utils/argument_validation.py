@@ -26,15 +26,24 @@ def standardize_tuple(value, n, name, allow_zero=False):
             raise ValueError(error_msg)
         if len(value_tuple) != n:
             raise ValueError(error_msg)
+        # Actually convert each element to a plain Python `int`, rather than
+        # just checking that `int(single_value)` doesn't raise and then
+        # discarding the result. Without this, a caller-supplied float
+        # (e.g. `kernel_size=(2.0, 2.0)`) or numpy integer silently passes
+        # validation but is returned unconverted, contradicting this
+        # function's documented contract ("Returns: A tuple of n integers")
+        # and causing e.g. `get_config()` to serialize `2.0` instead of `2`.
+        converted_values = []
         for single_value in value_tuple:
             try:
-                int(single_value)
+                converted_values.append(int(single_value))
             except (ValueError, TypeError):
                 error_msg += (
                     f"including element {single_value} of "
                     f"type {type(single_value)}"
                 )
                 raise ValueError(error_msg)
+        value_tuple = tuple(converted_values)
 
     if allow_zero:
         unqualified_values = {v for v in value_tuple if v < 0}
