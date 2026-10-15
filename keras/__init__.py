@@ -10,4 +10,4 @@ from keras.api import *  # noqa: F403, E402
 from keras.api import __version__  # noqa: E402
 
 # Don't pollute namespace.
-del os
+del os\
